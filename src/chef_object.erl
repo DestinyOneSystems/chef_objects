@@ -91,6 +91,7 @@
          org_id/1,
          id/1,
          type_name/1,
+         type_name_b/1,
 
          bulk_get_query/1,
          create_query/1,
@@ -143,6 +144,11 @@ org_id(Rec) ->
 -spec type_name(object_rec()) -> atom().
 type_name(Rec) ->
     call(Rec, type_name).
+
+-spec type_name_b(object_rec()) -> binary().
+type_name_b(Rec) ->
+    call_if_exported(Rec, type_name_b, [Rec], fun do_type_name_b/1).
+
 
 -spec authz_id(object_rec()) -> object_id().
 authz_id(Rec) ->
@@ -211,7 +217,7 @@ update(Rec, ActorId, CallbackFun) ->
     Mod:update(chef_object:set_updated(Rec, ActorId), CallbackFun).
 
 delete(Rec, CallbackFun) ->
-    call_if_exported(Rec, [Rec, CallbackFun], delete, fun do_delete/2).
+    call_if_exported(Rec, delete, [Rec, CallbackFun], fun do_delete/2).
   
 %% Return the callback module for a given object record type. We're putting the abstraction
 %% in place in case we need to do something other than the identity mapping of record name
@@ -268,4 +274,13 @@ is_undefined(_) ->
 do_delete(ObjectRec, CallbackFun) ->
     QueryName = delete_query(ObjectRec),
     Id = id(ObjectRec),
-    CallbackFun(QueryName, [Id]).
+    CallbackFun({QueryName, [Id]}).
+
+do_type_name_b(ObjectRec) ->
+    TypeName = chef_object:type_name(ObjectRec),
+    list_to_binary(convert_type_name_to_string(TypeName)).
+    
+convert_type_name_to_string(Atom) when is_atom(Atom) ->
+    convert_type_name_to_string(atom_to_list(Atom));
+convert_type_name_to_string([First | Rest]) ->
+    [string:to_upper(First)] ++ Rest.
