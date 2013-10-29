@@ -103,9 +103,6 @@ name(#chef_data_bag_item{data_bag_name = BagName, item_name = ItemName}) ->
 type_name(#chef_data_bag_item{}) ->
     data_bag_item.
 
-type_name_b(_) ->
-    <<"Data Bag Item">>.
-
 authz_id(#chef_data_bag_item{}) ->
     error(not_implemented).
 
